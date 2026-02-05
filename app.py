@@ -466,3 +466,47 @@ class ImageEditorApp:
         new_w = max(1, int(w * scale_factor))
         new_h = max(1, int(h * scale_factor))
 
+                interp = cv2.INTER_CUBIC if scale_factor >= 1.0 else cv2.INTER_AREA
+        resized = cv2.resize(self.scale_base, (new_w, new_h), interpolation=interp)
+
+        self.model.set_current(resized)
+        self._show_image(resized)
+
+    def increase_scale(self):
+        if not self.model.has_image():
+            return
+        self._ensure_scale_session()
+        if self.scale_level < 20:
+            self.scale_level += 1
+        self._apply_scale()
+
+    def decrease_scale(self):
+        if not self.model.has_image():
+            return
+        self._ensure_scale_session()
+        if self.scale_level > -10:
+            self.scale_level -= 1
+        self._apply_scale()
+
+    # ---- Rotate / Flip ----
+    def apply_rotate(self, angle: int):
+        if not self.model.has_image():
+            return
+        self._apply_and_show(self.model.rotate(angle))
+        self._reset_all_tool_states()
+
+    def apply_flip(self, mode: str):
+        if not self.model.has_image():
+            return
+        self._apply_and_show(self.model.flip(mode))
+        self._reset_all_tool_states()
+
+    # ---- Reset ----
+    def reset_image(self):
+        if not self.model.has_image():
+            return
+        if messagebox.askyesno("Reset", "Reset image to original?"):
+            self.history.push(self.model.get_current())
+            self.model.reset_to_original()
+            self._show_image(self.model.get_current())
+            self._reset_all_tool_states()
