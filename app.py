@@ -362,3 +362,29 @@ class ImageEditorApp:
         if not self.model.has_image():
             return
         if self.blur_level == 0:
+                       self.blur_base = self.model.get_current().copy()
+            self.history.push(self.model.get_current())
+
+        self.blur_level += 1
+        k = 2 * self.blur_level + 1  
+        blurred = cv2.GaussianBlur(self.blur_base, (k, k), 0)
+
+        self.model.set_current(blurred)
+        self._show_image(blurred)
+        self._cancel_other_sessions_for("blur")
+
+    def decrease_blur(self):
+        if not self.model.has_image():
+            return
+        if self.blur_level == 0:
+            return
+
+        self.blur_level -= 1
+        if self.blur_level == 0:
+            self.model.set_current(self.blur_base)
+            self._show_image(self.blur_base)
+            self.blur_base = None
+            return
+
+        k = 2 * self.blur_level + 1
+        blurred = cv2.GaussianBlur(self.blur_base, (k, k), 0)
