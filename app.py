@@ -336,3 +336,29 @@ class ImageEditorApp:
 
         next_img = self.history.redo(self.model.get_current())
         if next_img is not None:
+                      self.model.set_current(next_img)
+            self._show_image(next_img)
+
+        self._reset_all_tool_states()
+
+    # ---------------- TOOLS ----------------
+    def apply_grayscale(self):
+        if not self.model.has_image():
+            return
+        self._apply_and_show(self.model.to_grayscale())
+        self._reset_all_tool_states()
+
+    def apply_edges_once(self):
+        if not self.model.has_image():
+            return
+        if self.edge_applied:
+            return
+        self._apply_and_show(self.model.edge_detect())
+        self.edge_applied = True
+        self._cancel_other_sessions_for("edge")
+
+    # ---- Blur (+ / -) ----
+    def increase_blur(self):
+        if not self.model.has_image():
+            return
+        if self.blur_level == 0:
