@@ -266,3 +266,21 @@ class ImageEditorApp:
         )
         if not path:
             return
+        try:
+                        self.model.load(path)
+            self.history.clear()
+            self._reset_all_tool_states()
+            self._show_image(self.model.get_current())
+            self._update_ui_state()
+        except Exception as e:
+            messagebox.showerror("Open Error", str(e))
+
+        def save_image(self):
+        if not self.model.has_image():
+            messagebox.showwarning("No Image", "Please open an image first.")
+            return
+
+        if not self.model.get_filepath():
+            self.save_as_image()
+            return
+    
