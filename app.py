@@ -388,3 +388,29 @@ class ImageEditorApp:
 
         k = 2 * self.blur_level + 1
         blurred = cv2.GaussianBlur(self.blur_base, (k, k), 0)
+        
+                self.model.set_current(blurred)
+        self._show_image(blurred)
+        self._cancel_other_sessions_for("blur")
+
+    # ---- Brightness / Contrast (Buttons) ----
+    def _ensure_bc_session(self):
+        if self.bc_base is None:
+            self.bc_base = self.model.get_current().copy()
+            self.history.push(self.model.get_current())
+        self._cancel_other_sessions_for("bc")
+
+    def _apply_brightness_contrast(self):
+        if self.bc_base is None:
+            return
+
+        # Extended ranges:
+        brightness = self.brightness_level * 12  
+        contrast = 1.0 + (self.contrast_level * 0.08)  
+        contrast = max(0.2, min(4.0, contrast))
+
+        img = self.bc_base.astype(np.float32)
+        img = (img - 128.0) * contrast + 128.0 + brightness
+        img = np.clip(img, 0, 255).astype(np.uint8)
+
+        self.model.set_current(img)
