@@ -185,21 +185,10 @@ class ImageEditorApp:
 
   
     def _update_ui_state(self):
-        has_img = self.model.has_image()
-        state = "normal" if has_img else "disabled"
-
-       
-        for child in self.tools_container.winfo_children():
-            if isinstance(child, ttk.Button) or isinstance(child, ttk.Scale):
-                child.configure(state=state)
-            if isinstance(child, ttk.Frame):
-                for sub in child.winfo_children():
-                    if isinstance(sub, ttk.Button):
-                        sub.configure(state=state)
-
-        if not has_img:
+        if not self.model.has_image():
             self.image_label.config(text="Open an image to start", image="")
             self.status_var.set("No image loaded")
+
 
     def _update_status(self):
         if not self.model.has_image():
