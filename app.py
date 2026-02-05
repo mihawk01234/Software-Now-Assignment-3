@@ -439,3 +439,30 @@ class ImageEditorApp:
         if self.contrast_level < 20:
             self.contrast_level += 1
         self._apply_brightness_contrast()
+        
+            def decrease_contrast(self):
+        if not self.model.has_image():
+            return
+        self._ensure_bc_session()
+        if self.contrast_level > -20:
+            self.contrast_level -= 1
+        self._apply_brightness_contrast()
+
+  
+    def _ensure_scale_session(self):
+        if self.scale_base is None:
+            self.scale_base = self.model.get_current().copy()
+            self.history.push(self.model.get_current())
+        self._cancel_other_sessions_for("scale")
+
+    def _apply_scale(self):
+        if self.scale_base is None:
+            return
+
+        scale_factor = 1.0 + (self.scale_level * 0.1)
+        scale_factor = max(0.1, min(3.0, scale_factor))
+
+        h, w = self.scale_base.shape[:2]
+        new_w = max(1, int(w * scale_factor))
+        new_h = max(1, int(h * scale_factor))
+
