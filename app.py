@@ -414,3 +414,28 @@ class ImageEditorApp:
         img = np.clip(img, 0, 255).astype(np.uint8)
 
         self.model.set_current(img)
+                self._show_image(img)
+
+    def increase_brightness(self):
+        if not self.model.has_image():
+            return
+        self._ensure_bc_session()
+        if self.brightness_level < 20:
+            self.brightness_level += 1
+        self._apply_brightness_contrast()
+
+    def decrease_brightness(self):
+        if not self.model.has_image():
+            return
+        self._ensure_bc_session()
+        if self.brightness_level > -20:
+            self.brightness_level -= 1
+        self._apply_brightness_contrast()
+
+    def increase_contrast(self):
+        if not self.model.has_image():
+            return
+        self._ensure_bc_session()
+        if self.contrast_level < 20:
+            self.contrast_level += 1
+        self._apply_brightness_contrast()
