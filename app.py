@@ -257,7 +257,7 @@ class ImageEditorApp:
             self._reset_scale_state()
         if tool_name != "edge":
             self._reset_edge_state()
-    
+
     # ---------------- FILE MENU ----------------
     def open_image(self):
         path = filedialog.askopenfilename(
@@ -266,8 +266,9 @@ class ImageEditorApp:
         )
         if not path:
             return
+
         try:
-                        self.model.load(path)
+            self.model.load(path)
             self.history.clear()
             self._reset_all_tool_states()
             self._show_image(self.model.get_current())
@@ -275,7 +276,7 @@ class ImageEditorApp:
         except Exception as e:
             messagebox.showerror("Open Error", str(e))
 
-        def save_image(self):
+    def save_image(self):
         if not self.model.has_image():
             messagebox.showwarning("No Image", "Please open an image first.")
             return
@@ -283,8 +284,8 @@ class ImageEditorApp:
         if not self.model.get_filepath():
             self.save_as_image()
             return
-        
-                ok = cv2.imwrite(self.model.get_filepath(), self.model.get_current())
+
+        ok = cv2.imwrite(self.model.get_filepath(), self.model.get_current())
         if ok:
             messagebox.showinfo("Saved", "Image saved successfully.")
         else:
@@ -309,8 +310,7 @@ class ImageEditorApp:
             messagebox.showinfo("Saved", "Image saved successfully.")
             self._update_status()
         else:
-        
-                    messagebox.showerror("Save Error", "Failed to save the image.")
+            messagebox.showerror("Save Error", "Failed to save the image.")
 
     def exit_app(self):
         if messagebox.askyesno("Exit", "Are you sure you want to exit?"):
@@ -336,7 +336,7 @@ class ImageEditorApp:
 
         next_img = self.history.redo(self.model.get_current())
         if next_img is not None:
-                      self.model.set_current(next_img)
+            self.model.set_current(next_img)
             self._show_image(next_img)
 
         self._reset_all_tool_states()
@@ -362,7 +362,7 @@ class ImageEditorApp:
         if not self.model.has_image():
             return
         if self.blur_level == 0:
-                       self.blur_base = self.model.get_current().copy()
+            self.blur_base = self.model.get_current().copy()
             self.history.push(self.model.get_current())
 
         self.blur_level += 1
@@ -388,8 +388,8 @@ class ImageEditorApp:
 
         k = 2 * self.blur_level + 1
         blurred = cv2.GaussianBlur(self.blur_base, (k, k), 0)
-        
-                self.model.set_current(blurred)
+
+        self.model.set_current(blurred)
         self._show_image(blurred)
         self._cancel_other_sessions_for("blur")
 
@@ -414,7 +414,7 @@ class ImageEditorApp:
         img = np.clip(img, 0, 255).astype(np.uint8)
 
         self.model.set_current(img)
-                self._show_image(img)
+        self._show_image(img)
 
     def increase_brightness(self):
         if not self.model.has_image():
@@ -439,8 +439,8 @@ class ImageEditorApp:
         if self.contrast_level < 20:
             self.contrast_level += 1
         self._apply_brightness_contrast()
-        
-            def decrease_contrast(self):
+
+    def decrease_contrast(self):
         if not self.model.has_image():
             return
         self._ensure_bc_session()
@@ -466,7 +466,7 @@ class ImageEditorApp:
         new_w = max(1, int(w * scale_factor))
         new_h = max(1, int(h * scale_factor))
 
-                interp = cv2.INTER_CUBIC if scale_factor >= 1.0 else cv2.INTER_AREA
+        interp = cv2.INTER_CUBIC if scale_factor >= 1.0 else cv2.INTER_AREA
         resized = cv2.resize(self.scale_base, (new_w, new_h), interpolation=interp)
 
         self.model.set_current(resized)
