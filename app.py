@@ -300,3 +300,39 @@ class ImageEditorApp:
             defaultextension=".png",
             filetypes=[("PNG", "*.png"), ("JPG", "*.jpg *.jpeg"), ("BMP", "*.bmp")]
         )
+        if not path:
+            return
+
+        ok = cv2.imwrite(path, self.model.get_current())
+        if ok:
+            self.model.set_filepath(path)
+            messagebox.showinfo("Saved", "Image saved successfully.")
+            self._update_status()
+        else:
+        
+                    messagebox.showerror("Save Error", "Failed to save the image.")
+
+    def exit_app(self):
+        if messagebox.askyesno("Exit", "Are you sure you want to exit?"):
+            self.root.destroy()
+
+    # ---------------- EDIT MENU ----------------
+    def undo_action(self):
+        if not self.model.has_image() or not self.history.can_undo():
+            messagebox.showinfo("Undo", "Nothing to undo.")
+            return
+
+        prev_img = self.history.undo(self.model.get_current())
+        if prev_img is not None:
+            self.model.set_current(prev_img)
+            self._show_image(prev_img)
+
+        self._reset_all_tool_states()
+
+    def redo_action(self):
+        if not self.model.has_image() or not self.history.can_redo():
+            messagebox.showinfo("Redo", "Nothing to redo.")
+            return
+
+        next_img = self.history.redo(self.model.get_current())
+        if next_img is not None:
