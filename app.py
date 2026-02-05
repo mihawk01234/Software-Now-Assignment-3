@@ -257,3 +257,12 @@ class ImageEditorApp:
             self._reset_scale_state()
         if tool_name != "edge":
             self._reset_edge_state()
+    
+    # ---------------- FILE MENU ----------------
+    def open_image(self):
+        path = filedialog.askopenfilename(
+            title="Open Image",
+            filetypes=[("Image Files", "*.jpg *.jpeg *.png *.bmp")]
+        )
+        if not path:
+            return
