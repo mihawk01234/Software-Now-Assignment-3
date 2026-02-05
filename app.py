@@ -67,6 +67,9 @@ class ImageEditorApp:
         self._build_menu()
         self._build_layout()
         self._update_ui_state()
+        style = ttk.Style()
+        style.theme_use("clam")   
+
 
     # ---------------- MENU ----------------
     def _build_menu(self):
