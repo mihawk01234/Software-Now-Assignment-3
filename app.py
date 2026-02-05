@@ -8,14 +8,12 @@
 # - Tools:
 #   * Grayscale
 #   * Blur (+ / -)
-#   * Edge Detection 
-#   * Brightness (+ / -)  
-#   * Contrast (+ / -)    
-#   * Scale (+ / -)       
+#   * Edge Detection
+#   * Brightness (+ / -)
+#   * Contrast (+ / -)
+#   * Scale 
 #   * Rotate 90/180/270
 #   * Flip Horizontal/Vertical
-
-
 
 import os
 import tkinter as tk
@@ -33,7 +31,7 @@ from history_manager import HistoryManager
 class ImageEditorApp:
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("Image Editor - Tkinter + OpenCV")
+        self.root.title("Image Editor")
         self.root.geometry("1100x700")
 
         # Model + history (class interaction)
@@ -50,26 +48,25 @@ class ImageEditorApp:
         self.blur_level = 0
         self.blur_base = None
 
-        # Brightness/Contrast (buttons) state 
-        
+        # Brightness/Contrast 
         self.brightness_level = 0
         self.contrast_level = 0
         self.bc_base = None
 
-        # Scale (buttons) state -
-        
+        # Scale 
         self.scale_level = 0
         self.scale_base = None
+        self.scale_var = tk.DoubleVar(value=100)  
 
-        # Edge state 
+        # Edge state
         self.edge_applied = False
 
         self._build_menu()
         self._build_layout()
         self._update_ui_state()
-        style = ttk.Style()
-        style.theme_use("clam")   
 
+        style = ttk.Style()
+        style.theme_use("clam")
 
     # ---------------- MENU ----------------
     def _build_menu(self):
@@ -103,7 +100,7 @@ class ImageEditorApp:
         self.toggle_btn = ttk.Button(self.left_panel, text="◀ Hide Tools", command=self.toggle_tools)
         self.toggle_btn.pack(fill=tk.X, pady=(0, 10))
 
-        # Container that holds ALL tools 
+        # Container that holds ALL tools
         self.tools_container = ttk.Frame(self.left_panel)
         self.tools_container.pack(fill=tk.Y, expand=True)
 
@@ -120,7 +117,7 @@ class ImageEditorApp:
         self.status_bar = ttk.Label(self.root, textvariable=self.status_var, relief=tk.SUNKEN, anchor="w")
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
-        # -------- Tools UI (inside tools_container) --------
+        # -------- Tools UI  --------
         ttk.Label(self.tools_container, text="Effects / Tools", font=("Segoe UI", 12, "bold")).pack(pady=(0, 10))
 
         ttk.Button(self.tools_container, text="Grayscale", command=self.apply_grayscale).pack(fill=tk.X, pady=4)
@@ -147,12 +144,17 @@ class ImageEditorApp:
         ttk.Button(c_frame, text="-", command=self.decrease_contrast).pack(side=tk.LEFT, expand=True, fill=tk.X, padx=2)
         ttk.Button(c_frame, text="+", command=self.increase_contrast).pack(side=tk.LEFT, expand=True, fill=tk.X, padx=2)
 
-        # Scale buttons
+        # Image Scale 
         ttk.Label(self.tools_container, text="Image Scale").pack(pady=(12, 0))
-        s_frame = ttk.Frame(self.tools_container)
-        s_frame.pack(fill=tk.X, pady=4)
-        ttk.Button(s_frame, text="-", command=self.decrease_scale).pack(side=tk.LEFT, expand=True, fill=tk.X, padx=2)
-        ttk.Button(s_frame, text="+", command=self.increase_scale).pack(side=tk.LEFT, expand=True, fill=tk.X, padx=2)
+        self.scale_slider = ttk.Scale(
+            self.tools_container,
+            from_=10,
+            to=300,
+            orient="horizontal",
+            variable=self.scale_var,
+            command=self.on_scale_change
+        )
+        self.scale_slider.pack(fill=tk.X, pady=6)
 
         # Rotate
         ttk.Label(self.tools_container, text="Rotate").pack(pady=(12, 0))
@@ -173,7 +175,6 @@ class ImageEditorApp:
 
     # ---------------- Sidebar Toggle ----------------
     def toggle_tools(self):
-        
         if self.tools_visible:
             self.tools_container.pack_forget()
             self.toggle_btn.config(text="▶ Show Tools")
@@ -183,12 +184,11 @@ class ImageEditorApp:
             self.toggle_btn.config(text="◀ Hide Tools")
             self.tools_visible = True
 
-  
+    # ---------------- UI HELPERS ----------------
     def _update_ui_state(self):
         if not self.model.has_image():
             self.image_label.config(text="Open an image to start", image="")
             self.status_var.set("No image loaded")
-
 
     def _update_status(self):
         if not self.model.has_image():
@@ -229,6 +229,8 @@ class ImageEditorApp:
     def _reset_scale_state(self):
         self.scale_level = 0
         self.scale_base = None
+        if hasattr(self, "scale_var"):
+            self.scale_var.set(100)
 
     def _reset_edge_state(self):
         self.edge_applied = False
@@ -240,7 +242,6 @@ class ImageEditorApp:
         self._reset_edge_state()
 
     def _cancel_other_sessions_for(self, tool_name: str):
-        
         if tool_name != "blur":
             self._reset_blur_state()
         if tool_name != "bc":
@@ -358,7 +359,7 @@ class ImageEditorApp:
             self.history.push(self.model.get_current())
 
         self.blur_level += 1
-        k = 2 * self.blur_level + 1  
+        k = 2 * self.blur_level + 1
         blurred = cv2.GaussianBlur(self.blur_base, (k, k), 0)
 
         self.model.set_current(blurred)
@@ -385,7 +386,7 @@ class ImageEditorApp:
         self._show_image(blurred)
         self._cancel_other_sessions_for("blur")
 
-    # ---- Brightness / Contrast (Buttons) ----
+    # ---- Brightness / Contrast  ----
     def _ensure_bc_session(self):
         if self.bc_base is None:
             self.bc_base = self.model.get_current().copy()
@@ -396,9 +397,8 @@ class ImageEditorApp:
         if self.bc_base is None:
             return
 
-        # Extended ranges:
-        brightness = self.brightness_level * 12  
-        contrast = 1.0 + (self.contrast_level * 0.08)  
+        brightness = self.brightness_level * 12
+        contrast = 1.0 + (self.contrast_level * 0.08)
         contrast = max(0.2, min(4.0, contrast))
 
         img = self.bc_base.astype(np.float32)
@@ -440,18 +440,20 @@ class ImageEditorApp:
             self.contrast_level -= 1
         self._apply_brightness_contrast()
 
-  
-    def _ensure_scale_session(self):
+    # ---- Scale 
+    def on_scale_change(self, value):
+        
+        if not self.model.has_image():
+            return
+
+        
         if self.scale_base is None:
             self.scale_base = self.model.get_current().copy()
             self.history.push(self.model.get_current())
-        self._cancel_other_sessions_for("scale")
+            self._cancel_other_sessions_for("scale")
 
-    def _apply_scale(self):
-        if self.scale_base is None:
-            return
-
-        scale_factor = 1.0 + (self.scale_level * 0.1)
+        percent = float(value)
+        scale_factor = percent / 100.0
         scale_factor = max(0.1, min(3.0, scale_factor))
 
         h, w = self.scale_base.shape[:2]
@@ -463,22 +465,6 @@ class ImageEditorApp:
 
         self.model.set_current(resized)
         self._show_image(resized)
-
-    def increase_scale(self):
-        if not self.model.has_image():
-            return
-        self._ensure_scale_session()
-        if self.scale_level < 20:
-            self.scale_level += 1
-        self._apply_scale()
-
-    def decrease_scale(self):
-        if not self.model.has_image():
-            return
-        self._ensure_scale_session()
-        if self.scale_level > -10:
-            self.scale_level -= 1
-        self._apply_scale()
 
     # ---- Rotate / Flip ----
     def apply_rotate(self, angle: int):
