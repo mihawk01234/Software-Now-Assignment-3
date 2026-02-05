@@ -283,4 +283,20 @@ class ImageEditorApp:
         if not self.model.get_filepath():
             self.save_as_image()
             return
-    
+        
+                ok = cv2.imwrite(self.model.get_filepath(), self.model.get_current())
+        if ok:
+            messagebox.showinfo("Saved", "Image saved successfully.")
+        else:
+            messagebox.showerror("Save Error", "Failed to save the image.")
+
+    def save_as_image(self):
+        if not self.model.has_image():
+            messagebox.showwarning("No Image", "Please open an image first.")
+            return
+
+        path = filedialog.asksaveasfilename(
+            title="Save Image As",
+            defaultextension=".png",
+            filetypes=[("PNG", "*.png"), ("JPG", "*.jpg *.jpeg"), ("BMP", "*.bmp")]
+        )
